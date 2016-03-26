@@ -21,6 +21,29 @@ app.use(parser.json());
 // Set up our routes
 app.use('/classes', router);
 
+app.all('*', function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+// app.options('/', function (req, res) {
+//     // Website you wish to allow to connect
+//   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+
+//   // Request methods you wish to allow
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+
+//   // Request headers you wish to allow
+//   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+//   // Set to true if you need the website to include cookies in the requests sent
+//   // to the API (e.g. in case you use sessions)
+//   // res.setHeader('Access-Control-Allow-Credentials', true);
+//   // res.send({});
+// });
+
 // Serve the client files
 app.use(express.static(__dirname + '/../client'));
 
@@ -30,6 +53,17 @@ if (!module.parent) {
   console.log('Listening on', app.get('port'));
 }
 
-app.get('/', function (req, res) {
-  res.send('Hello contollers!');
-});
+
+// Add headers
+// app.use(function (req, res, next) {
+
+
+
+//   // Pass to next layer of middleware
+//   next();
+// });
+
+
+// app.use('/', function (req, res) {
+//   res.send('Hello contollers!');
+// });

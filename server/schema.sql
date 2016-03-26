@@ -4,17 +4,17 @@ USE chat;
 
 CREATE TABLE rooms (
   roomId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  roomName VARCHAR(40)
+  roomname VARCHAR(40)
 );
 
 CREATE TABLE users (
   userId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  userName VARCHAR(40)
+  username VARCHAR(40)
 );
 
 CREATE TABLE messages (
   /* Describe your table here.*/
-  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  objectId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   text VARCHAR(255),
   roomId INT NOT NULL,
   userId INT NOT NULL,
@@ -29,4 +29,3 @@ CREATE TABLE messages (
 /*  Execute this file from the command line by typing:
  *    mysql -u root < server/schema.sql
  *  to create the database and the tables.*/
-

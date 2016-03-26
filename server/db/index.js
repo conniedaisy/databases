@@ -11,86 +11,101 @@ var connection = mysql.createConnection({
   password: 'ccgirl77',
   database: 'chat'
 });
- 
- 
-var queryString = 'SELECT * FROM wp_posts';
- 
-var performQuery = function (queryString, value) {
-  return connection.query(queryString, function(err, rows, fields) {
-    if (err) {
-      throw err;
-    }
-    console.log('toben is awesome because no justification needed');
+
+connection.connect();
+var userID = -1;
+var passUserID = function ( rows, value ) {
+  if (Array.isArray(rows)) {
     if (rows.length === 0) {
-      queryString = 'INSERT INTO users (userName) VALUES ("' + value + '");';
+      queryString = 'INSERT INTO users (username) VALUES ("' + value + '");';
       //no username
       performQuery(queryString);
     } else {
       // return that userID
       console.log('found value and Id', value, rows[0].userID);
-      return rows[0].userID;
+      userID = rows[0].userID;
+      return userID;
+    }
+  }
+};
+// var queryString = 'SELECT * FROM wp_posts';
+ 
+var performQuery = function (queryString, callback) {
+  var userID = -1;
+  // console.log('***************** running query');
+  // console.log(queryString);
+  connection.query(queryString, function(err, rows, fields) {
+    if (err) {
+      throw err;
+    } else {
+      if (callback) {
+        callback(rows, fields);
+      }
     }
   });
 };
- 
-
-
-// dbConnection.query(queryString, queryArgs, function(err, results) {
-//   // Should have one result:
-
-//   // TODO: If you don't have a column named text, change this test.
-//   // expect(results[0].text).to.equal('In mercy\'s name, three days is all I need.');
-
-// });
-
 
 module.exports = {
   getMessages: {
-    byRoom: function () {}, // a function which produces all the messages
+    byRoom: function (roomname, callback) {
+      console.log('attempting to serve responses');
+      var queryString = 'select m.objectId, m.text, u.username, r.roomname from messages m inner join users u on (m.userID = u.userID) inner join rooms r on (m.roomID=r.roomID) where r.roomname="' + roomname + '";';
+      performQuery(queryString, function(rows, fields) {
+        console.log('Connie rocked it.... rows below *************');
+        console.log(rows);
+        // res.messageLog = rows;
+        callback(rows);
+      });
+    }, // a function which produces all the messages
     byUser: function () {} // a function which can be used to insert a message into the database
   },
-  setMessage: function () {
-    //will create a new message.  will need message, username, and room
+  setMessage: function (username, message, roomname) {
+
+    var insertMessageString = 'INSERT INTO messages (text, roomID, userID) VALUES ("' + message + '", (SELECT roomID FROM rooms WHERE roomname = "' + roomname + '"), (SELECT userID FROM users WHERE userName = "' + username + '"));';
+    var queryString = 'SELECT roomID FROM rooms where roomname=\'' + roomname + '\';';
+    performQuery(queryString, function(rows, fields) {
+      if (Array.isArray(rows)) {
+        if (rows.length === 0) {
+          // console.log('room not found *********************  inserting');
+          queryString = 'INSERT INTO rooms (roomname) VALUES ("' + roomname + '");';
+
+          performQuery(queryString, function() {
+            console.log('in callback to perform insertMessageString');
+            performQuery(insertMessageString);
+          });
+        } else {
+          // console.log('room found.. attempting to add message insertMessageString' + insertMessageString);
+          performQuery(insertMessageString);
+        }
+      }
+    });
+
   },
-  checkUser: function (username) {
-    var userID;
-    console.log('made it into db layer :', username);
+  checkUser: function (username, callback) { 
+    // console.log('made it into db layer :', username);
 
-    connection.connect();
+    var queryString = 'SELECT userID FROM users where userName=\'' + username + '\';';
 
-    // var username = 'toben';
-
-    var queryString = 'SELECT userID FROM users where userName=\'' + username + '\'';
-    // var queryArgs = [];
-
-    return performQuery(queryString, username);
-    // connection.query(queryString, function(err, rows, fields) {
-    //   if (err) {
-    //     throw err;
-    //   }
-    //   console.log('toben is awesome because no justification needed');
-    //   if (rows.length === 0) {
-    //     queryString = 'INSERT INTO users (userName) VALUES ("' + username + '");';
-    //     //no username
-    //   } else {
-    //     // return that userID
-    //     return rows[0].userID;
-    //   }
-    //   // for (var i in rows) {
-    //   //   console.log('Returned from DB? rows and fields ', rows[i].userID, fields[0].name);
-    //   // }
-    //   //insert into users (userName) values ('connie');
-
-    // });
-
-    
-    // dbConnection.query(queryString, queryArgs, function(err, results) {});
-
-    //will check if user exists
-      //if not, will create a new user in the user table
-    // return userID;
-
-    connection.end();
+    // var test = performQuery(queryString, username, passUserID);
+    performQuery(queryString, function(rows, fields) {
+      if (Array.isArray(rows)) {
+        if (rows.length === 0) {
+          queryString = 'INSERT INTO users (userName) VALUES ("' + username + '");';
+          //no username
+          performQuery(queryString, callback);
+        } 
+        if (callback) {
+          callback();
+        }
+        // else {
+        //   // return that userID
+        //   console.log('found value and Id', value, rows[0].userID);
+        //   var userID = rows[0].userID;
+        //   return userID;
+        // }
+      }
+    });
+    // connection.end();
   },
   checkRoom: {
     //will check if room exists
