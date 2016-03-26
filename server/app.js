@@ -30,3 +30,6 @@ if (!module.parent) {
   console.log('Listening on', app.get('port'));
 }
 
+app.get('/', function (req, res) {
+  res.send('Hello contollers!');
+});
